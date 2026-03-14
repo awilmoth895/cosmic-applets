@@ -1,24 +1,31 @@
 [workspace]
-default-members = ["cosmic-applets", "cosmic-panel-button"]
+# default-members = ["cosmic-applets", "cosmic-panel-button"]
+default-members = [
+    "cosmic-applet-workspaces-test"
+]
+# members = [
+#     "cosmic-app-list",
+#     "cosmic-app-list/cosmic-app-list-config",
+#     "cosmic-applets",
+#     "cosmic-applet-audio",
+#     "cosmic-applet-battery",
+#     "cosmic-applet-bluetooth",
+#     "cosmic-applet-minimize",
+#     "cosmic-applet-network",
+#     "cosmic-applet-notifications",
+#     "cosmic-applet-power",
+#     "cosmic-applet-status-area",
+#     "cosmic-applet-tiling",
+#     "cosmic-applet-time",
+#     "cosmic-applet-workspaces-test",
+#     "cosmic-panel-button",
+#     "cosmic-applet-input-sources",
+#     "cosmic-applet-a11y",
+#     "cosmic-applets-config",
+# ]
+
 members = [
-    "cosmic-app-list",
-    "cosmic-app-list/cosmic-app-list-config",
-    "cosmic-applets",
-    "cosmic-applet-audio",
-    "cosmic-applet-battery",
-    "cosmic-applet-bluetooth",
-    "cosmic-applet-minimize",
-    "cosmic-applet-network",
-    "cosmic-applet-notifications",
-    "cosmic-applet-power",
-    "cosmic-applet-status-area",
-    "cosmic-applet-tiling",
-    "cosmic-applet-time",
-    "cosmic-applet-workspaces",
-    "cosmic-panel-button",
-    "cosmic-applet-input-sources",
-    "cosmic-applet-a11y",
-    "cosmic-applets-config",
+    "cosmic-applet-workspaces-test"
 ]
 
 resolver = "3"
