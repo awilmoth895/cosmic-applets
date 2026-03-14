@@ -189,28 +189,62 @@ impl cosmic::Application for IcedWorkspacesApplet {
         let popup_index = self.popup_index().unwrap_or(self.workspaces.len());
 
         let buttons = self.workspaces[..popup_index].iter().map(|w| {
-            let content = self.core.applet.text(&w.name).font(cosmic::font::bold());
+            let content = self.core.applet.text("").font(cosmic::font::bold());
 
-            let (width, height) = if self.core.applet.is_horizontal() {
+            let (mut width, mut height) = if self.core.applet.is_horizontal() {
                 (suggested_total as f32, suggested_window_size.1.get() as f32)
             } else {
                 (suggested_window_size.0.get() as f32, suggested_total as f32)
             };
 
-            let content = row!(content, vertical_space().height(Length::Fixed(height)))
-                .align_y(Alignment::Center);
+            // height = 2.5;
 
-            let content = column!(content, horizontal_space().width(Length::Fixed(width)))
-                .align_x(Alignment::Center);
+            // if w.state.contains(ext_workspace_handle_v1::State::Active) {
+            //   width = 40.0;
+            // } else {
+            //     width = 10.0;
+            // }
+            let width = if w.state.contains(ext_workspace_handle_v1::State::Active) {
+                if self.core.applet.is_horizontal() {
+                    35.0
+                } else {
+                    9.5
+                }
+            } else {
+                7.0
+            };
+            let height = if w.state.contains(ext_workspace_handle_v1::State::Active) {
+                if self.core.applet.is_horizontal() {
+                    9.5
+                } else {
+                    35.0
+                }
+            } else {
+                7.0
+            };
+
+            // let width = size;
+            // let height = 5.0;
+
+
+            // let content = row!(content, vertical_space().height(Length::Fixed(height)))
+            //     .align_y(Alignment::Center);
+
+            // let content = column!(content, horizontal_space().width(Length::Fixed(width)))
+            //     .align_x(Alignment::Center);
 
             let btn = button(
                 container(content)
                     .align_x(Alignment::Center)
                     .align_y(Alignment::Center),
             )
+            .width(Length::Fixed(width))
+            .height(Length::Fixed(height))
             .padding(if horizontal {
+                // [0,0]
                 [0, self.core.applet.suggested_padding(true).1]
             } else {
+                // [0,0]
                 [self.core.applet.suggested_padding(true).1, 0]
             })
             .on_press(
@@ -220,14 +254,57 @@ impl cosmic::Application for IcedWorkspacesApplet {
                     Message::WorkspacePressed(w.handle.clone())
                 },
             )
-            .padding(0);
+            .padding(0.0)
+            .clip(true);
 
             btn.class(
                 if w.state.contains(ext_workspace_handle_v1::State::Active) {
-                   
-
-                if w.state.contains(ext_workspace_handle_v1::State::Active) {
-                    cosmic::theme::iced::Button::Primary
+                    let appearance = |theme: &Theme| {
+                        let cosmic = theme.cosmic();
+                        button::Style {
+                            border: Border {
+                                radius: 20.0.into(),
+                                ..Default::default()
+                            },
+                            
+                            background: Some(Background::Color(
+                                Color {
+                                    r: 1.0,
+                                    g: 1.0,
+                                    b: 1.0,
+                                    a: 1.0,
+                                }
+                            )),
+                            ..button::Style::default()
+                        }
+                    };
+                    cosmic::theme::iced::Button::Custom(Box::new(
+                        move |theme, status| match status {
+                            button::Status::Active => appearance(theme),
+                            button::Status::Hovered => button::Style {
+                                // background: Some(Background::Color(
+                                //     theme.current_container().component.hover.into(),
+                                // )),
+                                border: Border {
+                                    // radius: theme.cosmic().radius_xl().into(),
+                                    radius: 20.0.into(),
+                                    ..Default::default()
+                                },
+                                background: Some(Background::Color(
+                                    Color {
+                                        r: 1.0,
+                                        g: 1.0,
+                                        b: 1.0,
+                                        a: 0.75,
+                                    }
+                                )),
+                                ..appearance(theme)
+                            },
+                            button::Status::Pressed => appearance(theme),
+                            button::Status::Disabled => appearance(theme),
+                        },
+                    ))
+                    // cosmic::theme::iced::Button::Primary
                 } else if w.state.contains(ext_workspace_handle_v1::State::Urgent) {
                     let appearance = |theme: &Theme| {
                         let cosmic = theme.cosmic();
@@ -263,13 +340,21 @@ impl cosmic::Application for IcedWorkspacesApplet {
                     let appearance = |theme: &Theme| {
                         let cosmic = theme.cosmic();
                         button::Style {
-                            background: None,
                             border: Border {
-                                radius: cosmic.radius_xl().into(),
+                                // radius: theme.cosmic().radius_xl().into(),
+                                radius: 20.0.into(),
                                 ..Default::default()
                             },
-                            border_radius: cosmic.radius_xl().into(),
-                            text_color: theme.current_container().component.on.into(),
+                            background: Some(Background::Color(
+                                Color {
+                                    r: 1.0,
+                                    g: 1.0,
+                                    b: 1.0,
+                                    a: 0.5,
+                                }
+                            )),
+                            // border_radius: cosmic.radius_xl().into(),
+                            // text_color: theme.current_container().component.on.into(),
                             ..button::Style::default()
                         }
                     };
@@ -278,7 +363,12 @@ impl cosmic::Application for IcedWorkspacesApplet {
                             button::Status::Active => appearance(theme),
                             button::Status::Hovered => button::Style {
                                 background: Some(Background::Color(
-                                    theme.current_container().component.hover.into(),
+                                    Color {
+                                        r: 1.0,
+                                        g: 1.0,
+                                        b: 1.0,
+                                        a: 0.25,
+                                    }
                                 )),
                                 border: Border {
                                     radius: theme.cosmic().radius_xl().into(),
@@ -295,25 +385,29 @@ impl cosmic::Application for IcedWorkspacesApplet {
         });
         // TODO if there is a popup_index, create a button with a popup for the remaining workspaces
         // Should it appear on hover or on click?
+        // let layout_section: Element<_> = match self.layout {
+        //     Layout::Row => row(buttons).spacing(4).into(),
+        //     Layout::Column => column(buttons).spacing(4).into(),
+        // };
         let layout_section: Element<_> = match self.layout {
-            Layout::Row => row(buttons).spacing(4).into(),
-            Layout::Column => column(buttons).spacing(4).into(),
+            Layout::Row => row(buttons).spacing(8).align_y(Alignment::Center).into(),
+            Layout::Column => column(buttons).spacing(8).align_x(Alignment::Center).into(),
         };
-        let mut limits = Limits::NONE.min_width(1.).min_height(1.);
-        if let Some(b) = self.core.applet.suggested_bounds {
-            if b.width as i32 > 0 {
-                limits = limits.max_width(b.width);
-            }
-            if b.height as i32 > 0 {
-                limits = limits.max_height(b.height);
-            }
-        }
+        // let mut limits = Limits::NONE.min_width(1.).min_height(1.);
+        // if let Some(b) = self.core.applet.suggested_bounds {
+        //     if b.width as i32 > 0 {
+        //         limits = limits.max_width(b.width);
+        //     }
+        //     if b.height as i32 > 0 {
+        //         limits = limits.max_height(b.height);
+        //     }
+        // }
 
         autosize::autosize(
-            container(layout_section).padding(0),
+            container(layout_section).padding(15.0),
             AUTOSIZE_MAIN_ID.clone(),
         )
-        .limits(limits)
+        // .limits(limits)
         .into()
     }
 
