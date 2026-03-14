@@ -1,0 +1,15 @@
+[Desktop Entry]
+Name=Gnome Style Workspace Indicator
+Comment=Gnome syle workspace indicator for Cosmic
+Type=Application
+Exec=gnome-style-workspace-indicator
+Terminal=false
+Categories=COSMIC;
+Keywords=COSMIC;Applet;Workspace;
+Icon=gnomeStyleWorkspaceIndicator
+StartupNotify=true
+NoDisplay=true
+X-CosmicApplet=true
+X-HostWaylandDisplay=true
+X-OverflowPriority=5
+X-OverflowMinSize=8
