@@ -16,3 +16,4 @@ For somen reason you will then have to copy the binary into the bin folder, I do
 - The highlight on hover is not based on the color set from the theme instead it is just a color that is simular at the moment
 - The highlight does not correctly touch the top and bottom of the panel/dock like it does for all other applets
 - Highlight does not cause cursor to turn into pointer unless over the actual indicator dots/dash
+- It is not an exact copy just a loose approximation based on images and videos, I have never used Gnome outside of short tests
