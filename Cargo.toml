@@ -1,7 +1,8 @@
 [workspace]
 # default-members = ["cosmic-applets", "cosmic-panel-button"]
 default-members = [
-    "cosmic-applet-workspaces-test"
+    "gnome-style-workspace-indicator"
+
 ]
 # members = [
 #     "cosmic-app-list",
@@ -25,7 +26,7 @@ default-members = [
 # ]
 
 members = [
-    "cosmic-applet-workspaces-test"
+    "gnome-style-workspace-indicator"
 ]
 
 resolver = "3"

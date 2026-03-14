@@ -988,23 +988,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "cosmic-applet-workspaces-test"
-version = "1.0.2"
-dependencies = [
- "anyhow",
- "cosmic-client-toolkit",
- "futures",
- "i18n-embed",
- "i18n-embed-fl",
- "libcosmic",
- "rust-embed",
- "tokio",
- "tracing",
- "tracing-log",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "cosmic-client-toolkit"
 version = "0.2.0"
 source = "git+https://github.com/pop-os/cosmic-protocols//?branch=main#160b086abe03cd34a8a375d7fbe47b24308d1f38"
@@ -2045,6 +2028,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2c4ee00b289aba7a9e5306d57c2d05499b2e5dc427f84ac708bd2c090212cf3e"
 dependencies = [
  "gl_generator",
+]
+
+[[package]]
+name = "gnome-style-workspace-indicator"
+version = "1.0.0"
+dependencies = [
+ "anyhow",
+ "cosmic-client-toolkit",
+ "futures",
+ "i18n-embed",
+ "i18n-embed-fl",
+ "libcosmic",
+ "rust-embed",
+ "tokio",
+ "tracing",
+ "tracing-log",
+ "tracing-subscriber",
 ]
 
 [[package]]
