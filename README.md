@@ -1,4 +1,4 @@
-At the moment it is a gnome style workspace indicator for cosmic, I would love to set it up to be customizable but I don't know if I will get to that. This is a formk of the cosmic numbered workspace indicator. I have never used rust before this so I am just figuring it out so the code is probobly not optimal
+At the moment it is a gnome style workspace indicator for cosmic, I would love to set it up to be customizable but I don't know if I will get to that. This is a fork of the cosmic numbered workspace indicator. I have never used rust before this so I am just figuring it out so the code is probably not optimal.
 
 To install run\
 `Just`\
