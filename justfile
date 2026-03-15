@@ -1,84 +1,86 @@
-name := 'gnome-style-workspace-indicator'
-appid := 'nomeStyleWorkspaceIndicator'
-desktop := appid + '.desktop'
-metadata := appid + '.metainfo.xml'
-icon_file := appid + '.svg'
-
 rootdir := ''
 prefix := '/usr'
+clean := '0'
+debug := '0'
+vendor := '0'
+target := if debug == '1' { 'debug' } else { 'release' }
+vendor_args := if vendor == '1' { '--frozen --offline' } else { '' }
+debug_args := if debug == '1' { '' } else { '--release' }
+cargo_args := vendor_args + ' ' + debug_args
+targetdir := env('CARGO_TARGET_DIR', 'target')
+sharedir := rootdir + prefix + '/share'
+iconsdir := sharedir + '/icons/hicolor'
+prefixdir := prefix + '/bin'
+bindir := rootdir + prefixdir
+libdir := rootdir + prefix + '/lib'
+default-schema-target := sharedir / 'cosmic'
+cosmic-applets-bin := prefixdir / 'cosmic-applets'
+metainfo := 'com.system76.CosmicApplets.metainfo.xml'
+metainfo-src := 'data' / metainfo
+metainfo-dst := clean(rootdir / prefix) / 'share' / 'metainfo' / metainfo
 
-# Installation paths
-base-dir := absolute_path(clean(rootdir / prefix))
-cargo-target-dir := env('CARGO_TARGET_DIR', 'target')
-appdata-dst := base-dir / 'share' / 'appdata' / appid + '.metainfo.xml'
-bin-dst := base-dir / 'bin' / name
-desktop-dst := base-dir / 'share' / 'applications' / appid + '.desktop'
-icon-dst := base-dir / 'share' / 'icons' / 'hicolor' / 'scalable' / 'apps' / appid + '.svg'
-
-# Default recipe which runs `just build-release`
 default: build-release
-
-# Runs `cargo clean`
-clean:
-    cargo clean
-
-# Removes vendored dependencies
-clean-vendor:
-    rm -rf .cargo vendor vendor.tar
-
-# `cargo clean` and removes vendored dependencies
-clean-dist: clean clean-vendor
 
 # Compiles with debug profile
 build-debug *args:
-    cargo build {{args}}
+    cargo build {{ args }}
 
 # Compiles with release profile
 build-release *args: (build-debug '--release' args)
 
-# Compiles release profile with vendored dependencies
+# Compile with a vendored tarball
 build-vendored *args: vendor-extract (build-release '--frozen --offline' args)
 
-# Runs a clippy check
-check *args:
-    cargo clippy --all-features {{args}} -- -W clippy::pedantic
+_link_applet name:
+    ln -sf {{ cosmic-applets-bin }} {{ bindir }}/{{ name }}
 
-# Runs a clippy check with JSON message format
-check-json: (check '--message-format=json')
+_install_icons name:
+    find {{ name }}/'data'/'icons' -type f -exec echo {} \; | rev | cut -d'/' -f-3 | rev | xargs -d '\n' -I {} install -Dm0644 {{ name }}/'data'/'icons'/{} {{ iconsdir }}/{}
 
-# Run the application for testing purposes
-run *args:
-    env RUST_BACKTRACE=full cargo run --release {{args}}
+_install_default_schema name:
+    find {{ name }}/'data'/'default_schema' -type f -exec echo {} \; | rev | cut -d'/' -f-3 | rev | xargs -d '\n' -I {} install -Dm0644 {{ name }}/'data'/'default_schema'/{} {{ default-schema-target }}/{}
 
-# Installs files
-install:
-    install -Dm0755 {{ cargo-target-dir / 'release' / name }} {{bin-dst}}
-    install -Dm0644 resources/app.desktop {{desktop-dst}}
-    install -Dm0644 resources/app.metainfo.xml {{appdata-dst}}
-    install -Dm0644 resources/icon.svg {{icon-dst}}
+_install_desktop path:
+    install -Dm0644 {{ path }} {{ sharedir }}/applications/{{ file_name(path) }}
 
-# Uninstalls installed files
-uninstall:
-    rm {{bin-dst}} {{desktop-dst}} {{icon-dst}}
+_install_bin name:
+    install -Dm0755 {{ targetdir }}/{{ target }}/{{ name }} {{ bindir }}/{{ name }}
 
-# Vendor dependencies locally
+_install_applet id name: (_install_icons name) (_install_desktop name + '/data/' + id + '.desktop') (_link_applet name)
+
+_install_button id name: (_install_icons name) (_install_desktop 'target/xdgen/' + id + '.desktop')
+
+_install_metainfo:
+    install -Dm0644 {{ metainfo-src }} {{ metainfo-dst }}
+
+_install_status_notifier_watcher:
+    sed "s|@bindir@|{{ prefixdir }}|" cosmic-applet-status-area/data/dbus-1/com.system76.CosmicStatusNotifierWatcher.service.in > cosmic-applet-status-area/data/dbus-1/com.system76.CosmicStatusNotifierWatcher.service
+    install -Dm0644 cosmic-applet-status-area/data/dbus-1/com.system76.CosmicStatusNotifierWatcher.service {{ sharedir }}/dbus-1/services/com.system76.CosmicStatusNotifierWatcher.service
+    sed "s|@bindir@|{{ prefixdir }}|" cosmic-applet-status-area/data/com.system76.CosmicStatusNotifierWatcher.service.in > cosmic-applet-status-area/data/com.system76.CosmicStatusNotifierWatcher.service
+    install -Dm0644 cosmic-applet-status-area/data/com.system76.CosmicStatusNotifierWatcher.service {{ libdir }}/systemd/user/com.system76.CosmicStatusNotifierWatcher.service
+
+# Installs files into the system
+install: (_install_bin 'cosmic-applets') (_link_applet 'cosmic-panel-button') (_install_applet 'com.system76.CosmicAppList' 'cosmic-app-list') (_install_default_schema 'cosmic-app-list') (_install_applet 'com.system76.CosmicAppletA11y' 'cosmic-applet-a11y') (_install_applet 'com.system76.CosmicAppletAudio' 'cosmic-applet-audio') (_install_applet 'com.system76.CosmicAppletInputSources' 'cosmic-applet-input-sources') (_install_applet 'com.system76.CosmicAppletBattery' 'cosmic-applet-battery') (_install_applet 'com.system76.CosmicAppletBluetooth' 'cosmic-applet-bluetooth') (_install_applet 'com.system76.CosmicAppletMinimize' 'cosmic-applet-minimize') (_install_applet 'com.system76.CosmicAppletNetwork' 'cosmic-applet-network') (_install_applet 'com.system76.CosmicAppletNotifications' 'cosmic-applet-notifications') (_install_applet 'com.system76.CosmicAppletPower' 'cosmic-applet-power') (_install_applet 'com.system76.CosmicAppletStatusArea' 'cosmic-applet-status-area') (_install_applet 'com.system76.CosmicAppletTiling' 'cosmic-applet-tiling') (_install_applet 'com.system76.CosmicAppletTime' 'cosmic-applet-time') (_install_applet 'com.system76.CosmicAppletWorkspacesTest' 'cosmic-applet-workspaces') (_install_button 'com.system76.CosmicPanelAppButton' 'cosmic-panel-app-button') (_install_button 'com.system76.CosmicPanelLauncherButton' 'cosmic-panel-launcher-button') (_install_button 'com.system76.CosmicPanelWorkspacesButton' 'cosmic-panel-workspaces-button') _install_metainfo _install_status_notifier_watcher
+install_gnome_indicator: (_install_applet 'gnomeStyleWorkspaceIndicator' 'gnome-style-workspace-indicator')
+
+# Vendor Cargo dependencies locally
 vendor:
     mkdir -p .cargo
-    cargo vendor --sync Cargo.toml | head -n -1 > .cargo/config.toml
-    echo 'directory = "vendor"' >> .cargo/config.toml
-    echo >> .cargo/config.toml
-    rm -rf .cargo vendor
+    cargo vendor | head -n -1 > .cargo/config
+    echo 'directory = "vendor"' >> .cargo/config
+    tar pcf vendor.tar vendor
+    rm -rf vendor
 
 # Extracts vendored dependencies
+[private]
 vendor-extract:
     rm -rf vendor
     tar pxf vendor.tar
 
 # Bump cargo version, create git commit, and create tag
 tag version:
-    find -type f -name Cargo.toml -exec sed -i '0,/^version/s/^version.*/version = "{{version}}"/' '{}' \; -exec git add '{}' \;
+    find -type f -name Cargo.toml -exec sed -i '0,/^version/s/^version.*/version = "{{ version }}"/' '{}' \; -exec git add '{}' \;
     cargo check
     cargo clean
-    git add Cargo.lock
-    git commit -m 'release: {{version}}'
-    git tag -a {{version}} -m ''
+    dch -D noble -v {{ version }}
+    git add Cargo.lock debian/changelog
